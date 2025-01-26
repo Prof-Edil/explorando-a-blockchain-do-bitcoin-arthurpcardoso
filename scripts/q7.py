@@ -9,8 +9,8 @@ p = AuthServiceProxy(service_url=f"http://{rpc_user}:{rpc_password}@{rpc_host}:{
 # Função para verificar se uma saída está gasta
 def is_output_unspent(txid, vout_index):
     try:
-        p.gettxout(txid, vout_index)
-        return True  # Retorna True se a saída não foi gasta
+        result = p.gettxout(txid, vout_index)
+        return True, result  # Retorna True se a saída não foi gasta
     except Exception:
         return False  # Retorna False se foi gasta
 
@@ -21,10 +21,12 @@ block_hash = p.getblockhash(123321)
 block = p.getblock(block_hash)
 
 # Iterar pelas transações do bloco
-for txid in block['tx']:
-    tx = p.getrawtransaction(txid, True)
-    for vout_index, vout in enumerate(tx['vout']):
-        if is_output_unspent(txid, vout_index):
-            address = vout['scriptPubKey'].get('addresses', ["Endereço desconhecido"])[0]
-            print(f"Transação {txid}, saída {vout_index} permanece não gasta.")
-            print(f"Endereço: {address}")
+for tx in block['tx']:
+        #print(tx)
+        # pegar transação
+        tx = p.getrawtransaction(tx, True)
+        for vout in tx['vout']:
+            flag, result = is_output_unspent(tx['txid'], vout['n'])
+            if flag and result != None:
+                print(vout)
+                print(result)
